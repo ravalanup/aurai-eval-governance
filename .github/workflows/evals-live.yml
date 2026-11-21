@@ -25,7 +25,7 @@ jobs:
         with: { node-version: "22" }
       - run: pip install -e .
       - run: scripts/run-evals.sh ${{ inputs.suites }}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: evals-results
           path: evals/results
