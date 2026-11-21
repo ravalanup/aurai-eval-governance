@@ -1,0 +1,207 @@
+{{- if .Values.localStores.enabled }}
+# Local-development backing stores for Langfuse. Not for production.
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: obs-clickhouse
+  labels:
+    {{- include "aurai-observability.labels" . | nindent 4 }}
+spec:
+  clusterIP: None
+  selector:
+    app.kubernetes.io/name: obs-clickhouse
+  ports:
+    - name: http
+      port: 8123
+    - name: native
+      port: 9000
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: obs-clickhouse
+  labels:
+    {{- include "aurai-observability.labels" . | nindent 4 }}
+spec:
+  serviceName: obs-clickhouse
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: obs-clickhouse
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: obs-clickhouse
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: clickhouse
+          image: {{ .Values.localStores.clickhouse.image }}
+          imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+          env:
+            - name: CLICKHOUSE_DB
+              value: default
+            - name: CLICKHOUSE_USER
+              value: {{ .Values.localStores.clickhouse.user | quote }}
+            - name: CLICKHOUSE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.existingSecret }}
+                  key: clickhouse-password
+            - name: CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT
+              value: "1"
+          ports:
+            - name: http
+              containerPort: 8123
+            - name: native
+              containerPort: 9000
+          readinessProbe:
+            httpGet:
+              path: /ping
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /ping
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            {{- toYaml .Values.localStores.clickhouse.resources | nindent 12 }}
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/clickhouse
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: {{ .Values.localStores.clickhouse.storage }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: obs-redis
+  labels:
+    {{- include "aurai-observability.labels" . | nindent 4 }}
+spec:
+  selector:
+    app.kubernetes.io/name: obs-redis
+  ports:
+    - name: redis
+      port: 6379
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: obs-redis
+  labels:
+    {{- include "aurai-observability.labels" . | nindent 4 }}
+spec:
+  serviceName: obs-redis
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: obs-redis
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: obs-redis
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: redis
+          image: {{ .Values.localStores.redis.image }}
+          imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+          # Langfuse's queue needs noeviction so jobs are never dropped.
+          command: ["/bin/sh", "-c"]
+          args:
+            - exec redis-server --requirepass "$REDIS_AUTH" --maxmemory-policy noeviction --appendonly yes
+          env:
+            - name: REDIS_AUTH
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.existingSecret }}
+                  key: redis-password
+          ports:
+            - name: redis
+              containerPort: 6379
+          readinessProbe:
+            exec:
+              command: ["/bin/sh", "-c", "redis-cli -a \"$REDIS_AUTH\" --no-auth-warning ping | grep -q PONG"]
+            periodSeconds: 10
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            {{- toYaml .Values.localStores.redis.resources | nindent 12 }}
+          volumeMounts:
+            - name: data
+              mountPath: /data
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: {{ .Values.localStores.redis.storage }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: obs-s3
+  labels:
+    {{- include "aurai-observability.labels" . | nindent 4 }}
+spec:
+  selector:
+    app.kubernetes.io/name: obs-s3
+  ports:
+    - name: http
+      port: 9090
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: obs-s3
+  labels:
+    {{- include "aurai-observability.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: obs-s3
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: obs-s3
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: s3mock
+          image: {{ .Values.localStores.s3.image }}
+          imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+          env:
+            - name: initialBuckets
+              value: {{ .Values.localStores.s3.bucket | quote }}
+          ports:
+            - name: http
+              containerPort: 9090
+          readinessProbe:
+            tcpSocket:
+              port: http
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            {{- toYaml .Values.localStores.s3.resources | nindent 12 }}
+{{- end }}

@@ -1,0 +1,22 @@
+# Overlay for the aurai-infra release (aurai-platform). Keeps the debug exporter and adds a forward
+# to the fan-out collector in aurai-observability. Helm replaces lists and merges maps, so the full
+# exporters and pipelines blocks are restated here.
+otelCollector:
+  config:
+    exporters:
+      debug:
+        verbosity: basic
+      otlp/observability:
+        endpoint: otel-fanout.aurai-observability.svc.cluster.local:4317
+        tls:
+          insecure: true
+        sending_queue:
+          enabled: true
+        retry_on_failure:
+          enabled: true
+    service:
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [memory_limiter, batch]
+          exporters: [debug, otlp/observability]

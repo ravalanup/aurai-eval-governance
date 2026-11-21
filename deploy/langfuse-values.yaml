@@ -1,0 +1,67 @@
+# Langfuse via the official Helm chart (https://github.com/langfuse/langfuse-k8s), with every data store
+# external: PostgreSQL is the shared aurai-infra instance, ClickHouse/Redis/S3 come from the
+# aurai-observability chart (local) or managed services (AWS, see langfuse-values-aws.yaml).
+# Value names follow the chart's documented layout; confirm against the chart version you install
+# (`helm show values langfuse/langfuse --version <v>`).
+langfuse:
+  salt:
+    secretKeyRef: { name: langfuse-secrets, key: salt }
+  nextauth:
+    url: http://localhost:3000
+    secret:
+      secretKeyRef: { name: langfuse-secrets, key: nextauth-secret }
+  encryptionKey:
+    secretKeyRef: { name: langfuse-secrets, key: encryption-key }
+  telemetryEnabled: false
+  additionalEnv:
+    # Headless initialisation: org, project and API keys exist on first start (local development only).
+    - { name: LANGFUSE_INIT_ORG_ID, value: amazing-enterprise }
+    - { name: LANGFUSE_INIT_ORG_NAME, value: Amazing-Enterprise }
+    - { name: LANGFUSE_INIT_PROJECT_ID, value: aurai }
+    - { name: LANGFUSE_INIT_PROJECT_NAME, value: Aurai }
+    - { name: LANGFUSE_INIT_PROJECT_PUBLIC_KEY, valueFrom: { secretKeyRef: { name: langfuse-secrets, key: public-key } } }
+    - { name: LANGFUSE_INIT_PROJECT_SECRET_KEY, valueFrom: { secretKeyRef: { name: langfuse-secrets, key: secret-key } } }
+    - { name: LANGFUSE_INIT_USER_EMAIL, value: admin@amazing-enterprise.example }
+    - { name: LANGFUSE_INIT_USER_NAME, value: Aurai Admin }
+    - { name: LANGFUSE_INIT_USER_PASSWORD, valueFrom: { secretKeyRef: { name: langfuse-secrets, key: admin-password } } }
+    # ClickHouse (aurai-observability chart)
+    - { name: CLICKHOUSE_URL, value: "http://obs-clickhouse.aurai-observability.svc.cluster.local:8123" }
+    - { name: CLICKHOUSE_MIGRATION_URL, value: "clickhouse://obs-clickhouse.aurai-observability.svc.cluster.local:9000" }
+    - { name: CLICKHOUSE_USER, value: langfuse }
+    - { name: CLICKHOUSE_PASSWORD, valueFrom: { secretKeyRef: { name: observability-secrets, key: clickhouse-password } } }
+    - { name: CLICKHOUSE_CLUSTER_ENABLED, value: "false" }
+    # Redis
+    - { name: REDIS_HOST, value: obs-redis.aurai-observability.svc.cluster.local }
+    - { name: REDIS_PORT, value: "6379" }
+    - { name: REDIS_AUTH, valueFrom: { secretKeyRef: { name: observability-secrets, key: redis-password } } }
+    # Object storage
+    - { name: LANGFUSE_S3_EVENT_UPLOAD_BUCKET, value: langfuse }
+    - { name: LANGFUSE_S3_EVENT_UPLOAD_REGION, value: us-east-1 }
+    - { name: LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT, value: "http://obs-s3.aurai-observability.svc.cluster.local:9090" }
+    - { name: LANGFUSE_S3_EVENT_UPLOAD_FORCE_PATH_STYLE, value: "true" }
+    - { name: LANGFUSE_S3_EVENT_UPLOAD_ACCESS_KEY_ID, valueFrom: { secretKeyRef: { name: observability-secrets, key: s3-access-key } } }
+    - { name: LANGFUSE_S3_EVENT_UPLOAD_SECRET_ACCESS_KEY, valueFrom: { secretKeyRef: { name: observability-secrets, key: s3-secret-key } } }
+    - { name: LANGFUSE_S3_MEDIA_UPLOAD_BUCKET, value: langfuse }
+    - { name: LANGFUSE_S3_MEDIA_UPLOAD_REGION, value: us-east-1 }
+    - { name: LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT, value: "http://obs-s3.aurai-observability.svc.cluster.local:9090" }
+    - { name: LANGFUSE_S3_MEDIA_UPLOAD_FORCE_PATH_STYLE, value: "true" }
+    - { name: LANGFUSE_S3_MEDIA_UPLOAD_ACCESS_KEY_ID, valueFrom: { secretKeyRef: { name: observability-secrets, key: s3-access-key } } }
+    - { name: LANGFUSE_S3_MEDIA_UPLOAD_SECRET_ACCESS_KEY, valueFrom: { secretKeyRef: { name: observability-secrets, key: s3-secret-key } } }
+
+postgresql:
+  deploy: false
+  host: postgres.aurai-system.svc.cluster.local
+  port: 5432
+  auth:
+    username: aurai
+    database: langfuse
+    existingSecret: langfuse-secrets
+    secretKeys:
+      userPasswordKey: postgres-password
+
+clickhouse:
+  deploy: false
+redis:
+  deploy: false
+s3:
+  deploy: false

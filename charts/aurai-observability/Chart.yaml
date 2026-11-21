@@ -1,0 +1,6 @@
+apiVersion: v2
+name: aurai-observability
+description: Aurai observability support - trace fan-out collector for Langfuse and Phoenix, local backing stores, database bootstrap and network policy
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

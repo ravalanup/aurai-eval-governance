@@ -1,0 +1,9 @@
+# AWS (EKS). Local stores are replaced by managed services configured in deploy/langfuse-values-aws.yaml.
+global:
+  environment: aws
+
+localStores:
+  enabled: false
+
+databaseBootstrap:
+  enabled: true

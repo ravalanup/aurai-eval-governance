@@ -1,0 +1,18 @@
+# AWS overlay for Langfuse. Replaces the local stores with managed services; layered on top of
+# langfuse-values.yaml. Endpoints below are placeholders to fill from Terraform outputs.
+langfuse:
+  nextauth:
+    url: https://langfuse.aurai.example.com
+  serviceAccount:
+    annotations:
+      eks.amazonaws.com/role-arn: arn:aws:iam::111111111111:role/aurai-langfuse-s3   # placeholder
+  additionalEnv:
+    - { name: CLICKHOUSE_URL, value: "https://clickhouse.aurai.example.com:8443" }
+    - { name: CLICKHOUSE_MIGRATION_URL, value: "clickhouse://clickhouse.aurai.example.com:9440?secure=true" }
+    - { name: CLICKHOUSE_CLUSTER_ENABLED, value: "false" }
+    - { name: REDIS_HOST, value: aurai-langfuse.cache.amazonaws.com }
+    - { name: REDIS_TLS_ENABLED, value: "true" }
+    - { name: LANGFUSE_S3_EVENT_UPLOAD_BUCKET, value: aurai-langfuse-events }
+    - { name: LANGFUSE_S3_EVENT_UPLOAD_REGION, value: us-east-1 }
+    - { name: LANGFUSE_S3_MEDIA_UPLOAD_BUCKET, value: aurai-langfuse-media }
+    - { name: LANGFUSE_S3_MEDIA_UPLOAD_REGION, value: us-east-1 }

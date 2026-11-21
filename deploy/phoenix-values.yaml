@@ -1,0 +1,9 @@
+# Arize Phoenix (Elastic License 2.0 - fine to run internally, not to offer as a hosted service).
+# Chart: oci://registry-1.docker.io/arizephoenix/phoenix-helm. The database URL is passed at install
+# time with --set-string database.url=... so the password never lands in a file.
+postgresql:
+  enabled: false
+persistence:
+  enabled: false
+auth:
+  enableAuth: false   # local only; enable and wire OIDC in shared environments

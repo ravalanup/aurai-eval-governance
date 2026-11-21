@@ -1,0 +1,59 @@
+# Trace fan-out. aurai-infra's collector (aurai-system) forwards every trace here; this collector holds the
+# backend credentials and sends each trace to Langfuse (production monitoring, cost, prompts) and Phoenix
+# (developer debugging). If one backend is down, the other still receives traces.
+#
+# Endpoints and credentials arrive as environment variables so this file can be validated unchanged:
+#   LANGFUSE_OTLP_ENDPOINT   e.g. http://langfuse-web.aurai-observability.svc.cluster.local:3000/api/public/otel
+#   LANGFUSE_BASIC_AUTH      "Basic <base64(publicKey:secretKey)>"
+#   PHOENIX_OTLP_ENDPOINT    host:port of Phoenix's gRPC OTLP receiver (4317)
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  memory_limiter:
+    check_interval: 1s
+    limit_percentage: 80
+    spike_limit_percentage: 25
+  batch:
+    timeout: 5s
+    send_batch_size: 512
+
+exporters:
+  # The exporter appends /v1/traces to the endpoint.
+  otlphttp/langfuse:
+    endpoint: ${env:LANGFUSE_OTLP_ENDPOINT}
+    headers:
+      Authorization: ${env:LANGFUSE_BASIC_AUTH}
+    retry_on_failure:
+      enabled: true
+      max_elapsed_time: 120s
+    sending_queue:
+      enabled: true
+      queue_size: 2000
+  otlp/phoenix:
+    endpoint: ${env:PHOENIX_OTLP_ENDPOINT}
+    tls:
+      insecure: true
+    retry_on_failure:
+      enabled: true
+      max_elapsed_time: 120s
+    sending_queue:
+      enabled: true
+      queue_size: 2000
+
+service:
+  extensions: [health_check]
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [otlphttp/langfuse, otlp/phoenix]

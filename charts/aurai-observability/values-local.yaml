@@ -1,0 +1,6 @@
+# Local kind cluster. Create the secrets first with scripts/deploy-local.ps1.
+global:
+  environment: local
+
+localStores:
+  enabled: true

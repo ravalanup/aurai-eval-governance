@@ -1,0 +1,71 @@
+# Default values for the aurai-observability chart.
+global:
+  environment: local
+  imagePullPolicy: IfNotPresent
+
+# Name of the Secret that holds the credentials this chart needs (created by scripts/deploy-local.ps1,
+# or External Secrets in AWS). Keys: database-admin-url, clickhouse-password, redis-password,
+# s3-access-key, s3-secret-key, langfuse-basic-auth.
+existingSecret: observability-secrets
+
+# Databases to create on the shared PostgreSQL (aurai-infra locally, RDS in AWS).
+databaseBootstrap:
+  enabled: true
+  image: postgres:16.4
+  databases:
+    - langfuse
+    - phoenix
+
+# Fan-out collector.
+fanout:
+  enabled: false
+  image: otel/opentelemetry-collector-contrib:0.114.0
+  replicas: 1
+  langfuseEndpoint: http://langfuse-web.aurai-observability.svc.cluster.local:3000/api/public/otel
+  # Set by the deploy script after Phoenix is installed (the service name comes from the Phoenix chart).
+  phoenixEndpoint: ""
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
+
+# Backing stores for Langfuse in local development. In AWS use RDS, a Redis with noeviction policy,
+# S3 and a managed or operator-run ClickHouse (see docs/architecture.md), and set these to false.
+localStores:
+  enabled: true
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.8
+    user: langfuse
+    storage: 10Gi
+    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+      limits:
+        memory: 2Gi
+  redis:
+    image: redis:7.4.1
+    storage: 1Gi
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        memory: 256Mi
+  s3:
+    # S3-compatible object store for local use only. AWS uses S3 with an IRSA role.
+    image: adobe/s3mock:4.0.0
+    bucket: langfuse
+    resources:
+      requests:
+        cpu: 50m
+        memory: 256Mi
+      limits:
+        memory: 512Mi
+
+networkPolicy:
+  enabled: true
+  # Namespace allowed to send traces to the fan-out collector.
+  traceSourceNamespace: aurai-system
