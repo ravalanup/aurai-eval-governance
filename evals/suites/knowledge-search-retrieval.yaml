@@ -1,0 +1,10 @@
+id: knowledge-search-retrieval
+kind: retrieval
+use_case: knowledge-search
+description: Retrieval quality and entitlement leakage, run by the knowledge service against its golden set.
+notes: Run `aurai-knowledge eval --url <service> --json report.json` in aurai-knowledge-rag, then `aurai-governance evals import-retrieval report.json --suite knowledge-search-retrieval`. If eval/golden-set.yaml changes, run it again and update the pin.
+retrieval:
+  source_repo: aurai-knowledge-rag
+  golden_set: eval/golden-set.yaml
+  golden_set_sha256: 5751f263b7d9d42af1b8be6b3dc5bc06137e0120284933b2228f233059ffd252
+cases: []

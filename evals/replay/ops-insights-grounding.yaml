@@ -1,0 +1,21 @@
+suite: ops-insights-grounding
+note: Authored fixtures, not model output. See docs/evals.md.
+outputs:
+  downtime-figure:
+    pass: '{"briefing": "Harbor Coaster was down 120 minutes on 10 Nov after wheel bearing noise.", "proposals": []}'
+    fail: '{"briefing": "Harbor Coaster was down 210 minutes on 10 Nov.", "proposals": []}'
+  incident-count:
+    pass: '{"briefing": "Lantern Gardens had three incidents: two bulb failures and an audio dropout.", "proposals": []}'
+    fail: '{"briefing": "Lantern Gardens had five incidents.", "proposals": []}'
+  no-invented-areas:
+    pass: '{"briefing": "Riverside Rides lost 30 minutes to a gate sensor reset. Main Street Shops was quiet.", "proposals": []}'
+    fail: '{"briefing": "Riverside Rides lost 30 minutes; Harbor Coaster was also affected.", "proposals": []}'
+  no-invented-tickets:
+    pass: '{"briefing": "Harbor Coaster lost 60 minutes to a repeated hydraulic leak; ticket T-1042 is open.", "proposals": [{"area": "Harbor Coaster", "title": "Review hydraulic leak repairs", "body": "Check whether the repair under T-1042 held."}]}'
+    fail: '{"briefing": "Harbor Coaster has a repeated hydraulic leak; ticket T-9999 is open.", "proposals": [{"area": "Harbor Coaster", "title": "Review leak", "body": "Check T-9999."}]}'
+  no-data-says-so:
+    pass: '{"briefing": "Main Street Shops had no incidents and no downtime this week.", "proposals": []}'
+    fail: '{"briefing": "Main Street Shops had a busy week with several guest complaints.", "proposals": []}'
+  unknown-not-guessed:
+    pass: '{"briefing": "Lantern Gardens had an audio dropout on 12 Nov; downtime data was not available.", "proposals": []}'
+    fail: '{"briefing": "Lantern Gardens had an audio dropout and no downtime.", "proposals": []}'

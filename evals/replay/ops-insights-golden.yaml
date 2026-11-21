@@ -1,0 +1,39 @@
+suite: ops-insights-golden
+note: Authored fixtures, not model output. See docs/evals.md.
+outputs:
+  quiet-week:
+    pass: '{"briefing": "A quiet week: no incidents, no downtime and no open tickets in any area.", "proposals": []}'
+    fail: '{"briefing": "Several areas show problems that need follow-up.", "proposals": [{"area": "Harbor Coaster", "title": "Investigate Harbor Coaster", "body": "Check the ride logs."}]}'
+  recurring-downtime:
+    pass: '{"briefing": "Harbor Coaster was down 190 minutes over four days with the same brake sensor fault, and ticket T-2101 is still open. Lantern Gardens was quiet.", "proposals": [{"area": "Harbor Coaster", "title": "Review repeated brake sensor faults", "body": "Check why the sensor fault returned after a reset on 13 Nov; ticket T-2101 is open and two high-severity incidents match."}]}'
+    fail: Harbor Coaster had some trouble this week.
+  single-area-requested:
+    pass: '{"briefing": "Lantern Gardens had one medium-severity incident: an audio dropout during the lantern show.", "proposals": []}'
+    fail: '{"briefing": "Lantern Gardens had an audio dropout. Harbor Coaster was fine.", "proposals": []}'
+  open-ticket-unresolved:
+    pass: '{"briefing": "Riverside Rides lost 60 minutes to a weeping pump seal on two days; ticket T-2201 is still open.", "proposals": [{"area": "Riverside Rides", "title": "Confirm pump seal repair plan", "body": "Check progress on T-2201: the seal wept on 11 and 14 Nov, so the first fix may not have held."}]}'
+    fail: '{"briefing": "Riverside Rides had some downtime.", "proposals": []}'
+  resolved-incident-no-proposal:
+    pass: '{"briefing": "Main Street Shops had one low-severity POS reboot, already resolved under ticket T-2305.", "proposals": []}'
+    fail: '{"briefing": "Main Street Shops needs attention.", "proposals": [{"area": "Main Street Shops", "title": "Follow up on POS", "body": "Check the terminal."}]}'
+  cap-at-three:
+    pass: '{"briefing": "All four areas had repeated high-severity faults; the three most disruptive are ticketed below.", "proposals": [{"area": "Harbor Coaster", "title": "Review Harbor Coaster repeat faults", "body": "Check the fault logs for 10 and 12 Nov."}, {"area": "Lantern Gardens", "title": "Review Lantern Gardens repeat faults", "body": "Check the fault logs for 10 and 12 Nov."}, {"area": "Riverside Rides", "title": "Review Riverside Rides repeat faults", "body": "Check the fault logs for 10 and 12 Nov."}]}'
+    fail: '{"briefing": "All four areas had faults.", "proposals": [{"area": "Harbor Coaster", "title": "Review Harbor Coaster", "body": "Check the logs."}, {"area": "Lantern Gardens", "title": "Review Lantern Gardens", "body": "Check the logs."}, {"area": "Riverside Rides", "title": "Review Riverside Rides", "body": "Check the logs."}, {"area": "Main Street Shops", "title": "Review Main Street Shops", "body": "Check the logs."}]}'
+  brief-length:
+    pass: '{"briefing": "All four areas had repeated high-severity faults. Each lost about two hours. Open tickets exist for every area. The three most disruptive need follow-up. See proposals.", "proposals": [{"area": "Harbor Coaster", "title": "Review Harbor Coaster repeat faults", "body": "Check the fault logs for 10 and 12 Nov."}]}'
+    fail: '{"briefing": "All four areas had faults. Each lost two hours. Tickets are open. Harbor Coaster is worst. Lantern Gardens is next. Riverside Rides follows. Main Street Shops is last.", "proposals": [{"area": "Harbor Coaster", "title": "Review Harbor Coaster repeat faults", "body": "Check the fault logs."}]}'
+  numbers-faithful:
+    pass: '{"briefing": "Main Street Shops lost 75 minutes to a card reader outage on 12 Nov.", "proposals": []}'
+    fail: '{"briefing": "Main Street Shops lost 750 minutes to a card reader outage.", "proposals": []}'
+  empty-area-data:
+    pass: '{"briefing": "Riverside Rides had a repeated lift chain alarm and 90 minutes of downtime; Harbor Coaster was quiet.", "proposals": [{"area": "Riverside Rides", "title": "Inspect lift chain alarm", "body": "Check why the alarm repeated on 10 and 12 Nov; no ticket is open yet."}]}'
+    fail: '{"briefing": "Both areas need attention.", "proposals": [{"area": "Harbor Coaster", "title": "Check Harbor Coaster", "body": "Nothing specific."}]}'
+  severity-lead:
+    pass: '{"briefing": "Lantern Gardens had a high-severity lift stall on 13 Nov with guests aboard; ticket T-2410 is open. Main Street Shops had a minor paper jam.", "proposals": []}'
+    fail: Lantern Gardens and Main Street Shops had incidents this week.
+  rubric-quality:
+    pass: '{"briefing": "Harbor Coaster lost 30 minutes when the queue display went offline on 11 Nov. Riverside Rides has an open ticket to replace a worn handrail. Main Street Shops was quiet.", "proposals": []}'
+    fail: Everything is fine, nothing to see here.
+  ticket-body-actionable:
+    pass: '{"briefing": "Harbor Coaster lost 100 minutes to a repeated door interlock fault.", "proposals": [{"area": "Harbor Coaster", "title": "Inspect door interlock", "body": "Check the interlock wiring and logs: the fault occurred on 10 and 12 Nov and no ticket is open."}]}'
+    fail: '{"briefing": "Harbor Coaster lost 100 minutes.", "proposals": []}'

@@ -1,0 +1,56 @@
+id: gateway-smoke-pii
+kind: platform
+use_case: _platform
+description: 'Smoke test through the gateway: a completion works and PII is masked before it reaches the model.'
+model: aurai-fast
+notes: AURAI_EVAL_KEY must belong to a gateway team whose tier masks contact details (T1 or above). The model is asked to repeat its input, so a surviving address or number means masking failed.
+prompt:
+  user: '{{message}}'
+cases:
+- id: plain-completion
+  description: The gateway returns a completion for an ordinary request.
+  vars:
+    message: 'Reply with exactly the word: pong'
+  assert:
+  - type: icontains
+    value: pong
+    critical: true
+- id: email-masked
+  description: An email address is masked before the model sees it.
+  vars:
+    message: 'Repeat this sentence exactly, changing nothing: Please email jane.doe@example.com about the refund.'
+  assert:
+  - type: not-icontains
+    value: jane.doe@example.com
+    critical: true
+  - type: icontains
+    value: refund
+- id: phone-masked
+  description: A phone number is masked.
+  vars:
+    message: 'Repeat this sentence exactly, changing nothing: Call me on 407-555-0123 tomorrow.'
+  assert:
+  - type: not-icontains
+    value: 555-0123
+    critical: true
+  - type: icontains
+    value: tomorrow
+- id: ssn-masked
+  description: A government identifier is masked.
+  vars:
+    message: 'Repeat this sentence exactly, changing nothing: My number is 536-90-4399 and I need help.'
+  assert:
+  - type: not-icontains
+    value: 536-90-4399
+    critical: true
+  - type: icontains
+    value: need help
+- id: no-over-masking
+  description: Ordinary text passes through unchanged.
+  vars:
+    message: 'Repeat this sentence exactly, changing nothing: The brake inspection finished and the ride reopened at 2pm.'
+  assert:
+  - type: icontains
+    value: brake inspection
+  - type: icontains
+    value: reopened

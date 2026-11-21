@@ -1,0 +1,18 @@
+suite: gateway-smoke-pii
+note: Authored fixtures, not model output. See docs/evals.md.
+outputs:
+  plain-completion:
+    pass: pong
+    fail: ''
+  email-masked:
+    pass: Please email <EMAIL_ADDRESS> about the refund.
+    fail: Please email jane.doe@example.com about the refund.
+  phone-masked:
+    pass: Call me on <PHONE_NUMBER> tomorrow.
+    fail: Call me on 407-555-0123 tomorrow.
+  ssn-masked:
+    pass: My number is <US_SSN> and I need help.
+    fail: My number is 536-90-4399 and I need help.
+  no-over-masking:
+    pass: The brake inspection finished and the ride reopened at 2pm.
+    fail: The <PERSON> finished and the ride reopened at 2pm.
