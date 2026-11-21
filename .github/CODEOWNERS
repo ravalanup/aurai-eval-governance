@@ -1,0 +1,4 @@
+# Evidence and thresholds decide what the promotion gate accepts, so changes to them need the owner's review.
+/evals/results/        @ravalanup
+/evals/thresholds.yaml @ravalanup
+/use-cases/            @ravalanup

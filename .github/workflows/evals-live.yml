@@ -1,0 +1,32 @@
+name: evals-live
+# Runs the evaluation suites through the gateway and uploads the evidence. Run it by hand, from a protected
+# environment that holds the gateway URL and an evaluation key. It does not commit: download the artifact and
+# open a pull request, so that a person reviews the numbers (CODEOWNERS covers evals/results).
+on:
+  workflow_dispatch:
+    inputs:
+      suites:
+        description: Suite ids, space separated (empty runs every suite except retrieval)
+        required: false
+permissions:
+  contents: read
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    environment: evals
+    env:
+      AURAI_GATEWAY_URL: ${{ vars.AURAI_GATEWAY_URL }}
+      AURAI_EVAL_KEY: ${{ secrets.AURAI_EVAL_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - run: pip install -e .
+      - run: scripts/run-evals.sh ${{ inputs.suites }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: evals-results
+          path: evals/results
+          if-no-files-found: error
