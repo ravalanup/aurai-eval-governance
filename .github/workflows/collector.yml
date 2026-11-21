@@ -1,0 +1,18 @@
+name: collector-config
+on:
+  push: { branches: [main], paths: ["charts/aurai-observability/files/**"] }
+  pull_request: { paths: ["charts/aurai-observability/files/**"] }
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate fan-out collector config
+        run: |
+          docker run --rm -v "$PWD/charts/aurai-observability/files:/conf:ro" \
+            -e LANGFUSE_OTLP_ENDPOINT=http://langfuse:3000/api/public/otel \
+            -e LANGFUSE_BASIC_AUTH="Basic ZHVtbXk6ZHVtbXk=" \
+            -e PHOENIX_OTLP_ENDPOINT=phoenix:4317 \
+            otel/opentelemetry-collector-contrib:0.114.0 validate --config=/conf/fanout-collector.yaml

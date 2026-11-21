@@ -1,0 +1,36 @@
+name: ci
+on:
+  push: { branches: [main] }
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -e ".[dev]"
+      - run: ruff check .
+      - run: ruff format --check .
+      - run: pytest -q
+      - name: Validate registered use cases
+        run: aurai-governance validate use-cases/
+      - name: Check evaluation suites and their recorded outputs
+        run: aurai-governance evals check
+      - name: Check evaluation claims against committed evidence
+        run: aurai-governance gate use-cases/
+  promptfoo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - run: pip install -e ".[dev]"
+      - name: Real Promptfoo against the exported suites (no model is called)
+        run: pytest -q tests/test_promptfoo_pipeline.py
+        env:
+          AURAI_RUN_PROMPTFOO: "1"

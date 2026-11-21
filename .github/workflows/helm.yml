@@ -1,0 +1,19 @@
+name: helm
+on:
+  push: { branches: [main], paths: ["charts/**"] }
+  pull_request: { paths: ["charts/**"] }
+permissions:
+  contents: read
+jobs:
+  chart:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4
+      - run: helm lint charts/aurai-observability -f charts/aurai-observability/values-local.yaml
+      - run: helm template t charts/aurai-observability -f charts/aurai-observability/values-local.yaml --set fanout.enabled=true --set-string fanout.phoenixEndpoint=phoenix:4317 > /tmp/local.yaml
+      - run: helm template t charts/aurai-observability -f charts/aurai-observability/values-aws.yaml > /tmp/aws.yaml
+      - name: kubeconform
+        run: |
+          curl -sSL https://github.com/yannh/kubeconform/releases/download/v0.6.7/kubeconform-linux-amd64.tar.gz | tar xz
+          ./kubeconform -strict -summary /tmp/local.yaml /tmp/aws.yaml
