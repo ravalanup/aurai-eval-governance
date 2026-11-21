@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aurai.example.invalid/schemas/eval-suite.schema.json",
+  "title": "Aurai evaluation suite",
+  "description": "One evaluation suite: a prompt, test cases and assertions. Exported to Promptfoo for live runs and replayed offline in CI.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "kind", "use_case", "cases"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+    "kind": { "enum": ["golden", "red_team", "grounding", "platform", "retrieval"] },
+    "use_case": { "type": "string", "pattern": "^(_platform|[a-z0-9]+(-[a-z0-9]+)*)$" },
+    "description": { "type": "string" },
+    "notes": { "type": "string" },
+    "model": { "type": "string", "description": "Gateway model alias the live run calls" },
+    "judge_model": { "type": "string", "description": "Gateway model alias that grades llm-rubric assertions" },
+    "prompt_source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repo", "path"],
+      "properties": { "repo": { "type": "string" }, "path": { "type": "string" }, "symbol": { "type": "string" } }
+    },
+    "prompt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["user"],
+      "properties": { "system": { "type": "string" }, "user": { "type": "string" } }
+    },
+    "retrieval": {
+      "type": "object",
+      "description": "Retrieval suites are run by the knowledge service; this pins what the evidence must come from",
+      "additionalProperties": false,
+      "required": ["source_repo", "golden_set", "golden_set_sha256"],
+      "properties": {
+        "source_repo": { "type": "string" },
+        "golden_set": { "type": "string" },
+        "golden_set_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "cases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "assert"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+          "description": { "type": "string" },
+          "vars": { "type": "object", "additionalProperties": { "type": "string" } },
+          "assert": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["type"],
+              "properties": {
+                "type": { "type": "string" },
+                "value": {},
+                "critical": { "type": "boolean" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
