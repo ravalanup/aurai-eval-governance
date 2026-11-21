@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aurai.example.invalid/schemas/use-case.schema.json",
+  "title": "Aurai use case",
+  "description": "A registered use case: its risk tier, owner, data, audience, actions, models and controls.",
+  "$defs": { "suiteId": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" } },
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id", "name", "owner", "stage", "tier", "gateway_team_id", "data_classification",
+    "audience", "actions", "models", "controls"
+  ],
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+    "name": { "type": "string", "minLength": 3 },
+    "description": { "type": "string" },
+    "owner": { "type": "string", "minLength": 3, "description": "Accountable role, not an individual" },
+    "stage": { "enum": ["sandbox", "pilot", "production"] },
+    "tier": { "enum": ["T0", "T1", "T2", "T3"], "description": "Declared risk tier; must be at least what the rubric requires" },
+    "gateway_team_id": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+    "data_classification": { "enum": ["public", "internal", "confidential", "restricted"] },
+    "uses_retrieval": { "type": "boolean", "default": false },
+    "audience": { "enum": ["individual", "team", "company", "external"] },
+    "actions": { "enum": ["none", "read", "write"], "description": "What the use case does in other systems" },
+    "error_impact": { "enum": ["none", "low", "material"], "default": "none", "description": "Effect of an error on safety, money, legal standing or employment" },
+    "uses_protected_ip": { "type": "boolean", "default": false },
+    "models": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string" } },
+    "controls": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tracing", "pii_masking", "audit_retention", "monitoring"],
+      "properties": {
+        "tracing": { "type": "boolean" },
+        "pii_masking": { "type": "boolean" },
+        "entitlement_retrieval": { "type": "boolean" },
+        "citations": { "type": "boolean" },
+        "human_approval": { "enum": ["none", "single", "dual"], "default": "none" },
+        "golden_set_eval": { "enum": ["none", "planned", "passing"], "default": "none" },
+        "red_team": { "enum": ["none", "planned", "passing"], "default": "none" },
+        "audit_retention": { "enum": ["standard", "extended"] },
+        "monitoring": { "enum": ["none", "basic", "full", "full_with_runbook"] }
+      }
+    },
+    "reviews": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["role", "approver", "date"],
+        "properties": {
+          "role": { "enum": ["team_lead", "compliance", "legal"] },
+          "approver": { "type": "string" },
+          "date": { "type": "string", "format": "date", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" }
+        }
+      }
+    },
+    "pause_procedure": { "type": "string", "description": "How to pause the use case quickly" },
+    "evals": {
+      "type": "object",
+      "description": "Evaluation suites that back the golden_set_eval, red_team and grounding claims (see evals/suites)",
+      "additionalProperties": false,
+      "properties": {
+        "golden": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/suiteId" } },
+        "red_team": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/suiteId" } },
+        "grounding": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/suiteId" } }
+      }
+    },
+    "notes": { "type": "string" }
+  }
+}

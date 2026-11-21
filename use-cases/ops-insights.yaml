@@ -1,0 +1,48 @@
+# Example registered use case (fictional). Matches the ops-insights team in aurai-gateway/teams/teams.yaml.
+id: ops-insights
+name: Operations Insights Briefing
+description: >
+  Generates a daily briefing for park operations managers from operational reports (wait times,
+  staffing, incident summaries) and drafts follow-up tickets for a manager to review.
+owner: Park operations analytics lead
+stage: pilot
+tier: T2
+gateway_team_id: ops-insights
+data_classification: confidential
+uses_retrieval: true
+audience: team
+actions: write            # drafts tickets in the work-management system after human approval
+error_impact: low
+uses_protected_ip: false
+models:
+  - aurai-balanced
+  - aurai-reasoning
+  - aurai-gemini-pro
+controls:
+  tracing: true
+  pii_masking: true
+  entitlement_retrieval: true
+  citations: true
+  human_approval: single
+  golden_set_eval: planned
+  red_team: planned
+  audit_retention: extended
+  monitoring: full
+reviews:
+  - role: team_lead
+    approver: Operations analytics lead
+    date: "2026-11-12"
+  - role: compliance
+    approver: Compliance reviewer, operations
+    date: "2026-11-14"
+evals:
+  golden: [ops-insights-golden]
+  red_team: [ops-insights-redteam]
+  grounding: [ops-insights-grounding]
+pause_procedure: >
+  Run `aurai-governance pause ops-insights` (blocks the gateway team), then notify the owner and
+  the platform on-call. Resume with `aurai-governance resume ops-insights` after review.
+notes: >
+  Synthetic example. Golden set, red-team and grounding suites exist (evals/suites) but have not been run live, so
+  both claims stay "planned". Change them to "passing" only after `aurai-governance gate use-cases/` accepts
+  committed live evidence; see docs/evals.md.
