@@ -8,7 +8,7 @@ jobs:
   chart:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: azure/setup-helm@v4
       - run: helm lint charts/aurai-observability -f charts/aurai-observability/values-local.yaml
       - run: helm template t charts/aurai-observability -f charts/aurai-observability/values-local.yaml --set fanout.enabled=true --set-string fanout.phoenixEndpoint=phoenix:4317 > /tmp/local.yaml
