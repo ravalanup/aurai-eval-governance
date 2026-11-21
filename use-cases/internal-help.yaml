@@ -1,0 +1,41 @@
+# The workspace assistant for employees. Matches the internal-help team in aurai-gateway/teams/teams.yaml. Fictional.
+id: internal-help
+name: Internal Help Assistant
+description: >
+  Answers employee questions in the workspace using the search_knowledge tool, with a citation for every passage
+  it relies on. It reads; it does not take actions in other systems.
+owner: Employee services lead
+stage: sandbox
+tier: T1
+gateway_team_id: internal-help
+data_classification: internal
+uses_retrieval: true
+audience: company
+actions: read
+error_impact: low
+uses_protected_ip: false
+models:
+  - aurai-fast
+  - aurai-balanced
+controls:
+  tracing: true
+  pii_masking: true
+  entitlement_retrieval: true
+  citations: true
+  human_approval: none
+  golden_set_eval: planned     # no golden suite for the assistant itself yet; the gate requires one before pilot
+  red_team: none
+  audit_retention: standard
+  monitoring: full
+evals:
+  grounding: [knowledge-grounded-answers]
+reviews:
+  - role: team_lead
+    approver: Employee services lead
+    date: "2026-11-21"
+pause_procedure: >
+  Run `aurai-governance pause internal-help` (blocks the gateway team), then notify the owner and the platform
+  on-call. Resume with `aurai-governance resume internal-help` after review.
+notes: >
+  Synthetic example. The grounding suite checks that answers over retrieved passages are cited, faithful and
+  honest about gaps. Retrieval quality itself is evidenced under knowledge-search.

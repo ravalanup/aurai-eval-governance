@@ -1,0 +1,40 @@
+# Registered from aurai-knowledge-rag/governance/knowledge-search.use-case.yaml. Fictional.
+id: knowledge-search
+name: Knowledge Search
+description: >
+  Returns passages from approved document collections that the signed-in user is entitled to read, each with a
+  citation. It retrieves and ranks; it does not generate answers or take actions.
+owner: Knowledge platform product manager
+stage: sandbox
+tier: T3
+gateway_team_id: knowledge
+data_classification: restricted
+uses_retrieval: true
+audience: company
+actions: none
+error_impact: material          # a wrong or missing passage misleads the answer built on it
+uses_protected_ip: false
+models:
+  - aurai-embed
+controls:
+  tracing: true
+  pii_masking: true
+  entitlement_retrieval: true
+  citations: true
+  human_approval: none
+  golden_set_eval: planned     # becomes "passing" once live retrieval evidence for the pinned golden set is committed
+  red_team: planned            # no red-team suite yet; the gate requires one before pilot
+  audit_retention: extended
+  monitoring: basic
+evals:
+  golden: [knowledge-search-retrieval]
+reviews:
+  - role: team_lead
+    approver: Knowledge platform product manager
+    date: "2026-11-20"
+pause_procedure: >
+  Run `aurai-governance pause knowledge-search` (blocks the gateway team, which stops embedding of new queries and
+  therefore search), then notify the owner and the platform on-call.
+notes: >
+  Synthetic example. Retrieval quality and entitlement leakage are measured by the knowledge service's golden set;
+  evals/suites/knowledge-search-retrieval.yaml pins that file by hash.
